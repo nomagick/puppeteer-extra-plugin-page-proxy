@@ -1,9 +1,9 @@
 {
-  "name": "puppeteer-page-proxy",
-  "description": "Additional Node.js module to use with 'puppeteer' for setting proxies per page basis.",
-  "version": "1.3.0",
-  "author": "Cuadrix <cuadrix12000@gmail.com> (https://github.com/Cuadrix)",
-  "homepage": "https://github.com/Cuadrix/puppeteer-page-proxy",
+  "name": "puppeteer-extra-plugin-page-proxy",
+  "description": "A puppeteer-extra plugin for setting proxies per page basis.",
+  "version": "2.0.0",
+  "author": "Yanlong Wang <nomagick@naiver.org>",
+  "homepage": "https://github.com/nomagick/puppeteer-extra-plugin-page-proxy",
   "main": "./src/index.js",
   "types": "./src/index.d.ts",
   "scripts": {
@@ -11,21 +11,39 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/Cuadrix/puppeteer-page-proxy.git"
+    "url": "https://github.com/nomagick/puppeteer-extra-plugin-page-proxy.git"
   },
   "keywords": [
     "puppeteer",
     "proxy",
     "page",
     "headless",
-    "chromium"
+    "chromium",
+    "puppeteer",
+    "puppeteer-extra",
+    "puppeteer-extra-plugin",
+    "page-proxy"
   ],
   "license": "MIT",
   "dependencies": {
+    "debug": "^4.1.1",
     "got": "^11.8.5",
     "http-proxy-agent": "^5.0.0",
     "https-proxy-agent": "^5.0.1",
+    "puppeteer-extra-plugin": "^3.2.3",
     "socks-proxy-agent": "^7.0.0",
     "tough-cookie": "^4.1.2"
+  },
+  "peerDependencies": {
+    "puppeteer-extra": "*",
+    "playwright-extra": "*"
+  },
+  "peerDependenciesMeta": {
+    "puppeteer-extra": {
+      "optional": true
+    },
+    "playwright-extra": {
+      "optional": true
+    }
   }
 }

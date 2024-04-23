@@ -1,4 +1,9 @@
 # Change log
+### [2.0.0] - 2024-04-24
+#### Changes
+- Forked from [upstream](https://github.com/Cuadrix/puppeteer-page-proxy)
+- Now in the form of a puppeteer-extra plugin
+- Remove code irrelevant of being a plugin
 ### [1.3.0] - 2022-11-03
 #### Changes
 - Update readme

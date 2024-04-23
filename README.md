@@ -1,11 +1,14 @@
-![npm](https://img.shields.io/npm/v/puppeteer-page-proxy?style=flat-square)
+![npm](https://img.shields.io/npm/v/puppeteer-extra-plugin-page-proxy?style=flat-square)
 ![node-current](https://img.shields.io/node/v/puppeteer?style=flat-square)
-![npm](https://img.shields.io/npm/dt/puppeteer-page-proxy?style=flat-square)
+![npm](https://img.shields.io/npm/dt/puppeteer-extra-plugin-page-proxy?style=flat-square)
 
-# puppeteer-page-proxy <img src="https://i.ibb.co/kQrN9QJ/puppeteer-page-proxy-logo.png" align="right" width="150" height="150">
-Additional Node.js module to use with **[puppeteer](https://www.npmjs.com/package/puppeteer)** for setting proxies per page basis.
+# puppeteer-extra-plugin-page-proxy <img src="https://i.ibb.co/kQrN9QJ/puppeteer-page-proxy-logo.png" align="right" width="150" height="150">
+Plugin to use with **[puppeteer-extra](https://www.npmjs.com/package/puppeteer-extra)** for setting proxies per page basis.
 
 Forwards intercepted requests from the browser to Node.js where it redoes the requests through a proxy and then returns the response to the browser.
+
+Forked from [puppeteer-page-proxy](https://github.com/Cuadrix/puppeteer-page-proxy).
+
 
 ## Features
 
@@ -16,105 +19,85 @@ Forwards intercepted requests from the browser to Node.js where it redoes the re
 
 ## Installation
 ```
-npm i puppeteer-page-proxy
+npm i puppeteer puppeteer-extra puppeteer-extra-plugin-page-proxy
 ```
-## API
-#### useProxy(pageOrReq, proxy)
-
-- `pageOrReq` <[object](https://developer.mozilla.org/en-US/docs/Glossary/Object)> 'Page' or 'Request' object to set a proxy for.
-- `proxy` <[string](https://developer.mozilla.org/en-US/docs/Glossary/String)|[object](https://developer.mozilla.org/en-US/docs/Glossary/Object)> Proxy to use in the current page.
-  * Begins with a protocol (e.g. http://, https://, socks://)
-  * In the case of [proxy per request](https://github.com/Cuadrix/puppeteer-page-proxy#proxy-per-request), this can be an object with optional properties for overriding requests:\
-`url`, `method`, `postData`, `headers`\
-See [ContinueRequestOverrides](https://pptr.dev/api/puppeteer.continuerequestoverrides) for more info about the above properties.
-  
-#### useProxy.lookup(page[, lookupService, isJSON, timeout])
-
-- `page` <[object](https://developer.mozilla.org/en-US/docs/Glossary/Object)> 'Page' object to execute the request on.
-- `lookupService` <[string](https://developer.mozilla.org/en-US/docs/Glossary/String)> External lookup service to request data from.
-  * Fetches data from **api64.ipify.org** by default.
-- `isJSON` <[boolean](https://developer.mozilla.org/en-US/docs/Glossary/Boolean)> Whether to [JSON.parse](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/JSON/parse) the received response.
-  * Defaults to **true**.
-- `timeout` <[number](https://developer.mozilla.org/en-US/docs/Glossary/Number)|[string](https://developer.mozilla.org/en-US/docs/Glossary/String)> Time in milliseconds after which the request times out.
-  * Defaults to **30000**.
-- returns: <[Promise](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise)> Promise which resolves to the response of the lookup request.
-
-**NOTE:** By default this method expects a response in [JSON](https://en.wikipedia.org/wiki/JSON#Example) format and [JSON.parse](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/JSON/parse)'s it to a usable javascript object. To disable this functionality, set `isJSON` to `false`.
-    
 ## Usage
+
 #### Importing:
-```js
-const useProxy = require('puppeteer-page-proxy');
+```typescript
+import puppeteer from 'puppeteer-extra';
+import puppeteerPageProxy from 'puppeteer-extra-plugin-page-proxy';
+
+// Load the plugin but no proxy active
+puppeteer.use(puppeteerPageProxy());
 ```
 
-#### Proxy per page:
-```js
-await useProxy(page, 'http://127.0.0.1:80');
-```
-To remove proxy, omit or pass in falsy value (e.g `null`):
-```js
-await useProxy(page, null);
+#### Global proxy:
+```typescript
+// Load and set a global proxy (for all the future pages)
+puppeteer.use(puppeteerPageProxy('https://user:pass@host:port'));
 ```
 
-#### Proxy per request:
-```js
-await page.setRequestInterception(true);
-page.on('request', async request => {
-    await useProxy(request, 'https://127.0.0.1:443');
+#### Cooperative interception:
+Learn more about this concept here: [cooperative-intercept-mode](https://pptr.dev/guides/network-interception#cooperative-intercept-mode)
+```typescript
+puppeteer.use(
+    puppeteerPageProxy({
+        interceptResolutionPriority: 0
+    })
+);
+```
+
+#### Per page proxy:
+```typescript
+// After loading the plugin
+puppeteer.use(puppeteerPageProxy());
+
+// ... when you get a page
+page1.useProxy('https://user:pass@host:port');
+page2.useProxy('http://user:pass@host:port');
+page3.useProxy('socks5://user:pass@host:port');
+page4.useProxy('socks4://user:pass@host:port');
+
+// Go back using the global proxy again
+page1.useProxy(undefined);
+
+// Stop using any proxy
+page1.useProxy(null);
+
+// Go back using the global proxy but with a different priority
+page4.useProxy(undefined, {
+    interceptResolutionPriority: 1
+});
+page5.useProxy({
+    interceptResolutionPriority: 1
 });
 ```
-The request object itself is passed as the first argument. The individual request will be tunneled through the specified proxy.
 
-Using it together with other interception methods:
-```js
-await page.setRequestInterception(true);
-page.on('request', async request => {
-    if (request.resourceType() === 'image') {
-        request.abort();
-    } else {
-        await useProxy(request, 'socks4://127.0.0.1:1080');
-    }
+#### Only proxy navigation requests:
+```typescript
+// After loading the plugin
+puppeteer.use(puppeteerPageProxy({
+    onlyNavigation: true
+}));
+
+// ... or override on page level
+page.useProxy('https://user:pass@host:port', {
+    onlyNavigation: true
 });
 ```
 
-Overriding requests:
-```js
-await page.setRequestInterception(true);
-page.on('request', async request => {
-    await useProxy(request, {
-        proxy: 'socks5://127.0.0.1:1080',
-        url: 'https://example.com',
-        method: 'POST',
-        postData: '404',
-        headers: {
-            accept: 'text/html'
-        }
+#### Intercept by yourself and only use the proxy function:
+```typescript
+import { getProxiedResponse } from 'puppeteer-extra-plugin-page-proxy';
+
+page.on('request', (request)=> {
+    // ... your logic
+    const response = await getProxiedResponse(request, 'https://user:pass@host:port', {
+        // Optional overrides. See typings for detail.
     });
-});
-```
-
-**NOTE:** It's necessary to set [Page.setRequestInterception()](https://pptr.dev/api/puppeteer.page.setrequestinterception) to true when setting proxies per request, otherwise the function will fail.
-
-#### Authenticating:
-```js
-const proxy = 'https://user:pass@host:port';
-```
-
-#### IP lookup:
-```js
-// 1. Waits until done, 'then' continues
-const data = await useProxy.lookup(page1);
-    console.log(data.ip);
-    
-// 2. Executes and 'comes back' once done
-useProxy.lookup(page2).then(data => {
-    console.log(data.ip);
-});
-```
-In case of any [CORS](https://developer.mozilla.org/en-US/docs/Web/HTTP/CORS) errors, use `--disable-web-security` launch flag:
-```js
-const browser = await puppeteer.launch({
-    args: ['--disable-web-security']
+    request.respond(response);
+    // ... your other logic
 });
 ```
 
