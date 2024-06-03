@@ -144,9 +144,7 @@ class PuppeteerPageProxyPlugin extends PuppeteerExtraPlugin {
             return page.setRequestInterception(true);
         };
 
-        if (this.proxyUrl) {
-            await page.useProxy();
-        }
+        await page.useProxy();
     }
 }
 
